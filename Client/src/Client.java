@@ -17,6 +17,7 @@ public class Client {
                                 new InputStreamReader(
                                         socket.getInputStream()))
         ) {
+
             String response = reader.readLine();
             System.out.println(response);
 

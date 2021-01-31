@@ -1,3 +1,4 @@
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -33,34 +34,38 @@ public class Server {
                     streamWriter.flush();
 
                     String requestLocation = streamReader.readLine();
-                    String infoJSON = getURLContent("http://api.openweathermap.org/data/2.5/weather?q=" + requestLocation + "&appid=92ce4ca7ebfc9888c099a769d30dda86&units=metric");
 
-                    JSONObject jOb = new JSONObject(infoJSON);
+                    try {
+                        String infoJSON = getURLContent("http://api.openweathermap.org/data/2.5/weather?q=" + requestLocation + "&appid=92ce4ca7ebfc9888c099a769d30dda86&units=metric");
+                        JSONObject jOb = new JSONObject(infoJSON);
 
-                    String[] weatherInfo = new String[]{
-                            "Temperature: " + jOb.getJSONObject("main").getDouble("temp") + " °C",
+                        String[] weatherInfo = new String[]{
+                                "Temperature: " + jOb.getJSONObject("main").getDouble("temp") + " °C",
 
-                            "Feels like: " + jOb.getJSONObject("main").getDouble("feels_like") + " °C",
+                                "Feels like: " + jOb.getJSONObject("main").getDouble("feels_like") + " °C",
 
-                            "Max: " + jOb.getJSONObject("main").getDouble("temp_max") + " °C",
+                                "Max: " + jOb.getJSONObject("main").getDouble("temp_max") + " °C",
 
-                            "Min: " + jOb.getJSONObject("main").getDouble("temp_min") + " °C",
+                                "Min: " + jOb.getJSONObject("main").getDouble("temp_min") + " °C",
 
-                            "Pressure: " + jOb.getJSONObject("main").getDouble("pressure") + " millimeters of mercury",
+                                "Pressure: " + jOb.getJSONObject("main").getDouble("pressure") + " millimeters of mercury",
 
-                            "Wind speed: " + jOb.getJSONObject("wind").getDouble("speed") + " m/s"
-                    };
+                                "Wind speed: " + jOb.getJSONObject("wind").getDouble("speed") + " m/s"
+                        };
 
-                    streamWriter.write("Location: " + requestLocation);
-                    streamWriter.newLine();
-                    streamWriter.flush();
-
-                    for (String str : weatherInfo) {
-                        streamWriter.write(str);
+                        streamWriter.write("Location: " + requestLocation);
                         streamWriter.newLine();
                         streamWriter.flush();
-                    }
 
+                        for (String str : weatherInfo) {
+                            streamWriter.write(str);
+                            streamWriter.newLine();
+                            streamWriter.flush();
+                        }
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
+
+                    }
                 } catch (NullPointerException ex) {
                     ex.printStackTrace();
                 }
@@ -85,7 +90,7 @@ public class Server {
 
             urlReader.close();
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return content.toString();
