@@ -21,17 +21,21 @@ public class Client {
             System.out.println(response);
 
             Scanner scan = new Scanner(System.in);
-            String request = scan.next();
+            String request = scan.nextLine();
 
             writer.write(request);
             writer.newLine();
             writer.flush();
 
-            response = reader.readLine();
-            System.out.println(response);
+            while (response != null) {
+                response = reader.readLine();
+                if (response != null)
+                    System.out.println(response);
+            }
 
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 }
+
