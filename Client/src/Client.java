@@ -3,6 +3,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
+
     public static void main(String[] args) {
         try (
                 Socket socket = new Socket("127.0.0.1", 8000);
@@ -17,17 +18,21 @@ public class Client {
                                 new InputStreamReader(
                                         socket.getInputStream()))
         ) {
-
             String response = reader.readLine();
             System.out.println(response);
 
             Scanner scan = new Scanner(System.in);
             String request = scan.nextLine();
+            scan.close();
 
             writer.write(request);
             writer.newLine();
             writer.flush();
 
+            /*
+            FIXME
+            I don't know why reader always returns a one null
+             */
             while (response != null) {
                 response = reader.readLine();
                 if (response != null)

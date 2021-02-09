@@ -1,19 +1,19 @@
-import org.json.JSONException;
-import org.json.JSONObject;
+import jsonParser.GetJSONInfo;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
+
+import exceptions.WrongLocationException;
+import interfaces.IConstants;
+import url.URLContent;
 
 
-public class Server {
+public class Server implements IConstants {
+
     public static void main(String[] args) {
 
-        try (ServerSocket server = new ServerSocket(8000)) {
-
-            System.out.println("Server started");
+        try (ServerSocket server = new ServerSocket(PORT_NUMBER)) {
 
             while (true)
                 try (
@@ -36,63 +36,32 @@ public class Server {
                     String requestLocation = streamReader.readLine();
 
                     try {
-                        String infoJSON = getURLContent("http://api.openweathermap.org/data/2.5/weather?q=" + requestLocation + "&appid=92ce4ca7ebfc9888c099a769d30dda86&units=metric");
-                        JSONObject jOb = new JSONObject(infoJSON);
+                        String JSONInfoToString = URLContent.getURLContent(URL_ADDRESS_PART_ONE + requestLocation + URL_ADDRESS_PART_TWO);
 
-                        String[] weatherInfo = new String[]{
-                                "Temperature: " + jOb.getJSONObject("main").getDouble("temp") + " °C",
+                        String[] weatherConditions = GetJSONInfo.parseInfo(JSONInfoToString);
 
-                                "Feels like: " + jOb.getJSONObject("main").getDouble("feels_like") + " °C",
-
-                                "Max: " + jOb.getJSONObject("main").getDouble("temp_max") + " °C",
-
-                                "Min: " + jOb.getJSONObject("main").getDouble("temp_min") + " °C",
-
-                                "Pressure: " + jOb.getJSONObject("main").getDouble("pressure") + " millimeters of mercury",
-
-                                "Wind speed: " + jOb.getJSONObject("wind").getDouble("speed") + " m/s"
-                        };
+                        if (weatherConditions == null)
+                            throw new WrongLocationException("Wrong location name.");
 
                         streamWriter.write("Location: " + requestLocation);
                         streamWriter.newLine();
                         streamWriter.flush();
 
-                        for (String str : weatherInfo) {
+                        for (String str : weatherConditions) {
                             streamWriter.write(str);
                             streamWriter.newLine();
                             streamWriter.flush();
                         }
-                    } catch (JSONException ex) {
+                    } catch (WrongLocationException ex) {
                         ex.printStackTrace();
-
                     }
-                } catch (NullPointerException ex) {
+
+                } catch (IOException ex) {
                     ex.printStackTrace();
                 }
+
         } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
         }
-    }
-
-    private static String getURLContent(String URLAddress) {
-
-        StringBuilder content = new StringBuilder();
-        try {
-            URL url = new URL(URLAddress);
-            URLConnection urlConnection = url.openConnection();
-
-            BufferedReader urlReader = new BufferedReader(new InputStreamReader((urlConnection.getInputStream())));
-
-            String str;
-            while ((str = urlReader.readLine()) != null) {
-                content.append(str + "\n");
-            }
-
-            urlReader.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return content.toString();
     }
 }
